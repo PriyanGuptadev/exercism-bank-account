@@ -1,98 +1,44 @@
 defmodule BankAccount do
-  use GenServer
+  alias BankAccount.Server
 
-  def start_link do
-    initial_state = %{
-      balance: 0,
-      closed: false
-    }
+  @invalid_amount "invalid amount"
 
-    GenServer.start_link(__MODULE__, initial_state)
-  end
+  @type account :: pid()
 
-  @impl true
-  def init(balance) do
-    {:ok, balance}
-  end
-
+  @spec open_bank() :: {:ok, pid()}
   def open_bank do
-    start_link()
+    Server.start_link()
   end
 
+  @spec balance(account()) ::
+          {:ok, integer()} | {:error, String.t()}
   def balance(account) do
     GenServer.call(account, :balance)
   end
 
-  @impl true
-  def handle_call(:balance, _from, %{closed: true} = state) do
-    {:reply, {:error, "account closed"}, state}
-  end
-
-  @impl true
-  def handle_call(:balance, _from, state) do
-    {:reply, {:ok, state.balance}, state}
-  end
-
+  @spec deposit(account(), integer()) ::
+          {:ok, integer()} | {:error, String.t()}
   def deposit(account, amount) when amount > 0 do
     GenServer.call(account, {:deposit, amount})
   end
 
   def deposit(_, _) do
-    {:error, "invalid amount"}
+    {:error, @invalid_amount}
   end
 
-  @impl true
-  def handle_call({:deposit, _amount}, _from, %{closed: true} = state) do
-    {:reply, {:error, "account closed"}, state}
-  end
-
-  def handle_call({:deposit, amount}, _from, state) do
-    updated_state = %{
-      state
-      | balance: state.balance + amount
-    }
-
-    {:reply, {:ok, updated_state.balance}, updated_state}
-  end
-
+  @spec withdraw(account(), integer()) ::
+          {:ok, integer()} | {:error, String.t()}
   def withdraw(account, amount) when amount > 0 do
     GenServer.call(account, {:withdraw, amount})
   end
 
   def withdraw(_, _) do
-    {:error, "invalid amount"}
+    {:error, @invalid_amount}
   end
 
-  @impl true
-  def handle_call({:withdraw, _amount}, _from, %{closed: true} = state) do
-    {:reply, {:error, "account closed"}, state}
-  end
-
-  def handle_call({:withdraw, amount}, _from, state)
-      when state.balance < amount do
-    {:reply, {:error, "insufficient funds"}, state}
-  end
-
-  def handle_call({:withdraw, amount}, _from, state) do
-    updated_state = %{
-      state
-      | balance: state.balance - amount
-    }
-
-    {:reply, {:ok, updated_state.balance}, updated_state}
-  end
-
+  @spec close_bank(account()) ::
+          :ok | {:error, String.t()}
   def close_bank(account) do
     GenServer.call(account, :close)
-  end
-
-  @impl true
-  def handle_call(:close, _from, state) do
-    updated_state = %{
-      state
-      | closed: true
-    }
-
-    {:reply, :ok, updated_state}
   end
 end
