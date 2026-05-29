@@ -68,4 +68,18 @@ defmodule BankAccount do
 
     {:reply, {:ok, updated_state.balance}, updated_state}
   end
+
+  def close_bank(account) do
+    GenServer.call(account, :close)
+  end
+
+  @impl true
+  def handle_call(:close, _from, state) do
+    updated_state = %{
+      state
+      | closed: true
+    }
+    IO.inspect(state)
+    {:reply, :ok, updated_state}
+  end
 end
