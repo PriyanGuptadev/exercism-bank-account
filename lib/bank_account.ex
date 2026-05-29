@@ -24,6 +24,11 @@ defmodule BankAccount do
   end
 
   @impl true
+  def handle_call(:balance, _from, %{closed: true} = state) do
+    {:reply, {:error, "account closed"}, state}
+  end
+
+  @impl true
   def handle_call(:balance, _from, state) do
     {:reply, {:ok, state.balance}, state}
   end
@@ -37,6 +42,10 @@ defmodule BankAccount do
   end
 
   @impl true
+  def handle_call({:deposit, _amount}, _from, %{closed: true} = state) do
+    {:reply, {:error, "account closed"}, state}
+  end
+
   def handle_call({:deposit, amount}, _from, state) do
     updated_state = %{
       state
@@ -55,6 +64,10 @@ defmodule BankAccount do
   end
 
   @impl true
+  def handle_call({:withdraw, _amount}, _from, %{closed: true} = state) do
+    {:reply, {:error, "account closed"}, state}
+  end
+
   def handle_call({:withdraw, amount}, _from, state)
       when state.balance < amount do
     {:reply, {:error, "insufficient funds"}, state}
@@ -79,7 +92,7 @@ defmodule BankAccount do
       state
       | closed: true
     }
-    IO.inspect(state)
+
     {:reply, :ok, updated_state}
   end
 end
