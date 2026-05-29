@@ -22,4 +22,19 @@ defmodule BankAccount do
   def handle_call(:balance, _from, balance) do
     {:reply, balance, balance}
   end
+
+  def deposit(account, amount) when amount > 0 do
+    GenServer.call(account, {:deposit, amount})
+  end
+
+  def deposit(_, _) do
+    {:error, "invalid amount"}
+  end
+
+  @impl true
+  def handle_call({:deposit, amount}, _from, balance) do
+    updated_balance = balance + amount
+
+    {:reply, {:ok, updated_balance}, updated_balance}
+  end
 end
