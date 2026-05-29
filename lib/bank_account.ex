@@ -2,7 +2,12 @@ defmodule BankAccount do
   use GenServer
 
   def start_link do
-    GenServer.start_link(__MODULE__, 0)
+    initial_state = %{
+      balance: 0,
+      closed: false
+    }
+
+    GenServer.start_link(__MODULE__, initial_state)
   end
 
   @impl true
@@ -19,8 +24,8 @@ defmodule BankAccount do
   end
 
   @impl true
-  def handle_call(:balance, _from, balance) do
-    {:reply, balance, balance}
+  def handle_call(:balance, _from, state) do
+    {:reply, {:ok, state.balance}, state}
   end
 
   def deposit(account, amount) when amount > 0 do
@@ -32,10 +37,13 @@ defmodule BankAccount do
   end
 
   @impl true
-  def handle_call({:deposit, amount}, _from, balance) do
-    updated_balance = balance + amount
+  def handle_call({:deposit, amount}, _from, state) do
+    updated_state = %{
+      state
+      | balance: state.balance + amount
+    }
 
-    {:reply, {:ok, updated_balance}, updated_balance}
+    {:reply, {:ok, updated_state.balance}, updated_state}
   end
 
   def withdraw(account, amount) when amount > 0 do
@@ -47,15 +55,17 @@ defmodule BankAccount do
   end
 
   @impl true
-  def handle_call({:withdraw, amount}, _from, balance)
-      when balance < amount do
-    {:reply, {:error, "insufficient funds"}, balance}
+  def handle_call({:withdraw, amount}, _from, state)
+      when state.balance < amount do
+    {:reply, {:error, "insufficient funds"}, state}
   end
 
-  @impl true
-  def handle_call({:withdraw, amount}, _from, balance) do
-    updated_balance = balance - amount
+  def handle_call({:withdraw, amount}, _from, state) do
+    updated_state = %{
+      state
+      | balance: state.balance - amount
+    }
 
-    {:reply, {:ok, updated_balance}, updated_balance}
+    {:reply, {:ok, updated_state.balance}, updated_state}
   end
 end
