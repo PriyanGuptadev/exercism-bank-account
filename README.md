@@ -1,21 +1,125 @@
-# BankingSystem
+# Concurrent Banking System in Elixir
 
-**TODO: Add description**
+A concurrency-safe banking system built using Elixir and OTP.
 
-## Installation
+## Features
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `banking_system` to your list of dependencies in `mix.exs`:
+* Open and close bank accounts
+* Deposit and withdraw money safely
+* Prevent overdrafts
+* Prevent operations on closed accounts
+* Concurrent transaction safety using GenServer
+* Automated tests with ExUnit
 
-```elixir
-def deps do
-  [
-    {:banking_system, "~> 0.1.0"}
-  ]
-end
+---
+
+## Tech Stack
+
+* Elixir
+* Erlang/OTP
+* GenServer
+* ExUnit
+
+---
+
+## Setup
+
+### Requirements
+
+Install:
+
+* Erlang/OTP
+* Elixir
+
+Check installation:
+
+```bash
+elixir -v
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/banking_system](https://hexdocs.pm/banking_system).
+---
 
+## Run Project
+
+Clone the project and install dependencies:
+
+```bash
+mix deps.get
+```
+
+Compile:
+
+```bash
+mix compile
+```
+
+Start interactive shell:
+
+```bash
+iex -S mix
+```
+
+---
+
+## Usage
+
+### Open Account
+
+```elixir
+{:ok, account} = BankAccount.open_bank()
+```
+
+### Deposit
+
+```elixir
+BankAccount.deposit(account, 500)
+```
+
+### Withdraw
+
+```elixir
+BankAccount.withdraw(account, 200)
+```
+
+### Check Balance
+
+```elixir
+BankAccount.balance(account)
+```
+
+### Close Account
+
+```elixir
+BankAccount.close_bank(account)
+```
+
+---
+
+## Concurrency Example
+
+```elixir
+tasks =
+  for _ <- 1..100 do
+    Task.async(fn ->
+      BankAccount.deposit(account, 10)
+    end)
+  end
+
+Enum.each(tasks, &Task.await/1)
+```
+
+Final balance:
+
+```elixir
+{:ok, 1000}
+```
+
+This ensures safe concurrent updates without race conditions.
+
+---
+
+## Run Tests
+
+```bash
+mix test
+```
